@@ -2,6 +2,8 @@
 
 module decode(clk,
 				inst,
+				write_reg,
+				write_data,
 				rs1,
 				rs2,
 				rd,
@@ -16,6 +18,11 @@ module decode(clk,
 				
 	input reg clk;
 	input reg [31:0] inst;
+	
+	input reg [4:0] write_reg;
+	input reg [31:0] write_data;
+	
+	
 	output reg [4:0] rs1;
 	output reg [4:0] rs2;
 	output reg [4:0] rd;
@@ -56,59 +63,72 @@ module decode(clk,
 		
 		rs2 <= inst[24:20];
 		
+		rd <= inst[11:7];
+		
 		// R TYPE: ADD, SUB, XOR, SRA
 		if (opcode == 7'b0110011) begin
 			imm <= 0;
 			alu_src <= 0;
 			mem_to_reg <= 0;
+			mem_read <= 0;
 			// ADD or SUB
 			if (funct3 == 3'b000) begin
 				// ADD
 				if (funct7 == 7'b0000000) begin
 					alu_op <= 3'b000;
+					reg_write <= 1;
 				end
 				// SUB
 				else if (funct7 == 7'b0100000) begin
 					alu_op <= 3'b001;
+					reg_write <= 1;
 				end
 				// DEFAULT NO OP
 				else begin
 					alu_op <= 3'b000;
+					reg_write <= 0;
 				end
 			end
 			// XOR
 			else if (funct3 == 3'b100) begin
 				alu_op <= 3'b010;
+				reg_write <= 1;
 			end
 			// SRA
 			else if (funct3 == 3'b101) begin
 				alu_op <= 3'b011;
+				reg_write <= 1;
 			end
 			// DEFAULT NO OP
 			else begin
 				alu_op <= 3'b000;
+				reg_write <= 0;
 			end
 		end
 		// I TYPE: ADDI, ANDI
 		else if (opcode == 7'b0010011) begin
 			alu_src <= 1;
 			mem_to_reg <= 0;
+			mem_read <= 0;
 			// ADDI
 			if (funct3 == 3'b000) begin
 				imm[11:0] <= inst[31:20];
 				imm[31:12] <= 0;
 				alu_op <= 3'b000;
+				reg_write <= 1;
 			end
 			// ANDI
 			else if (funct3 == 3'b111) begin
 				imm[11:0] <= inst[31:20];
 				imm[31:12] <= 0;
 				alu_op <= 3'b100;
+				reg_write <= 1;
 			end
 			// DEFAULT NO OP
 			else begin
 				imm <= 0;
 				alu_op <= 3'b000;
+				reg_write <= 0;
 			end
 		end
 		// I TYPE: LW
@@ -120,10 +140,14 @@ module decode(clk,
 			if (funct3 == 3'b010) begin
 				imm[11:5] <= inst[31:20];
 				imm[31:12] <= 0;
+				reg_write <= 1;
+				mem_read <= 1;
 			end
 			// DEFAULT NO OP
 			else begin
 				imm <= 0;
+				reg_write <= 0;
+				mem_read <= 0;
 			end
 		end
 		// S TYPE: SW
@@ -131,6 +155,8 @@ module decode(clk,
 			alu_src <= 1;
 			alu_op <= 3'b000;
 			mem_to_reg <= 0; // this value is irrelevant since we don't write to a destination register
+			reg_write <= 0;
+			mem_read <= 0;
 			// SW
 			if (funct3 == 3'b010) begin
 				imm[11:5] <= inst[31:25];
@@ -147,6 +173,8 @@ module decode(clk,
 			alu_src <= 0;
 			imm <= 0;
 			mem_to_reg <= 0;
+			reg_write <= 0;
+			mem_read <= 0;
 		end
 		
 		
