@@ -29,6 +29,7 @@ module decode(clk,
 	output reg [31:0] imm;
 	
 	output reg [2:0] alu_op;
+	
 	output reg alu_src;
 	
 	output reg mem_to_reg;
@@ -71,6 +72,7 @@ module decode(clk,
 			alu_src <= 0;
 			mem_to_reg <= 0;
 			mem_read <= 0;
+			mem_write <= 0;
 			// ADD or SUB
 			if (funct3 == 3'b000) begin
 				// ADD
@@ -110,6 +112,7 @@ module decode(clk,
 			alu_src <= 1;
 			mem_to_reg <= 0;
 			mem_read <= 0;
+			mem_write <= 0;
 			// ADDI
 			if (funct3 == 3'b000) begin
 				imm[11:0] <= inst[31:20];
@@ -136,6 +139,7 @@ module decode(clk,
 			alu_src <= 1;
 			alu_op <= 3'b000;
 			mem_to_reg <= 1;
+			mem_write <= 0;
 			// LW
 			if (funct3 == 3'b010) begin
 				imm[11:5] <= inst[31:20];
@@ -162,19 +166,24 @@ module decode(clk,
 				imm[11:5] <= inst[31:25];
 				imm[4:0] <= inst[11:7];
 				imm[31:12] <= 0;
+				mem_write <= 1;
+
 			end
 			// DEFAULT NO OP
 			else begin
 				imm <= 0;
+				mem_write <= 0;
 			end
 		end
 		// DEFAULT NO OP
 		else begin
+			alu_op <= 3'b000;
 			alu_src <= 0;
 			imm <= 0;
 			mem_to_reg <= 0;
 			reg_write <= 0;
 			mem_read <= 0;
+			mem_write <= 0;
 		end
 		
 		
