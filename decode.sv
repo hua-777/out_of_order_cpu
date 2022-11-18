@@ -8,6 +8,7 @@ module decode(clk,
 				rs2,
 				rd,
 				imm,
+				opcode,
 				alu_op,
 				alu_src,
 				mem_to_reg,
@@ -39,13 +40,12 @@ module decode(clk,
 	output reg mem_read;
 	output reg mem_write;
 
-	wire [6:0] opcode;
+	output reg [6:0] opcode;
 	
 	wire [2:0] funct3;
 	
 	wire [6:0] funct7;
 	
-	assign opcode = inst[6:0];
 	
 	assign funct3 = inst[14:12];
 	
@@ -59,6 +59,7 @@ module decode(clk,
 	// ADD, SUB, ADDI, XOR, ANDI, SRA, LW, SW
 
 	always @ (posedge clk) begin
+		opcode <= inst[6:0];
 		
 		rs1 <= inst[19:15];
 		
@@ -67,7 +68,7 @@ module decode(clk,
 		rd <= inst[11:7];
 		
 		// R TYPE: ADD, SUB, XOR, SRA
-		if (opcode == 7'b0110011) begin
+		if (inst[6:0] == 7'b0110011) begin
 			imm <= 0;
 			alu_src <= 0;
 			mem_to_reg <= 0;
@@ -108,7 +109,7 @@ module decode(clk,
 			end
 		end
 		// I TYPE: ADDI, ANDI
-		else if (opcode == 7'b0010011) begin
+		else if (inst[6:0] == 7'b0010011) begin
 			alu_src <= 1;
 			mem_to_reg <= 0;
 			mem_read <= 0;
@@ -135,7 +136,7 @@ module decode(clk,
 			end
 		end
 		// I TYPE: LW
-		else if (opcode == 7'b0000011) begin
+		else if (inst[6:0] == 7'b0000011) begin
 			alu_src <= 1;
 			alu_op <= 3'b000;
 			mem_to_reg <= 1;
@@ -155,7 +156,7 @@ module decode(clk,
 			end
 		end
 		// S TYPE: SW
-		else if (opcode == 7'b0100011)begin
+		else if (inst[6:0] == 7'b0100011)begin
 			alu_src <= 1;
 			alu_op <= 3'b000;
 			mem_to_reg <= 0; // this value is irrelevant since we don't write to a destination register
