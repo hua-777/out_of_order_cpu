@@ -12,7 +12,7 @@ module fetch(clk,
 	reg [7:0] data [0:127];
 
 	initial begin
-		$readmemh("C:/users/Derek/Documents/ooo_cpu/instructions.txt", data);
+		$readmemh("C:/users/madha/Desktop/ooo_cpu-main/ooo_cpu-main/instructions.txt", data);
 	end
 	
 	

@@ -16,11 +16,15 @@ module rename (
 	newrs1_2,
 	newrs2_2,
 	newrd_2,
-	freepool
+	irat,
+	ifreepool,
+	orat,
+	ofreepool,
 );
   
 
 	input clk;
+	input reg [6:0] rat [31:0];
 	
 	input reg [4:0] rs1_1;
 	input reg [4:0] rs2_1;
@@ -43,27 +47,12 @@ module rename (
 	output reg [5:0] newrs2_2;
 	output reg [5:0] newrd_2;
 
-	output reg freepool [63:0];
-
-	logic [6:0] rat [31:0];
-
-	integer i;
-	reg [6:0] j;
-
-  //for loop, initialize RAT and freepool
-	initial begin
-		//RAT 
-		for (i=0; i<32; i=i+1) begin
-			rat[i] = i;
-		end 
-		//Free pool
-		for (i=0; i<32; i=i+1) begin
-			freepool[i] = 0;
-		end 
-		for (i=32; i<64; i=i+1) begin
-			freepool[i] = 1;
-		end 
-	end  
+	input reg ifreepool [63:0];
+	input logic [6:0] irat [31:0];
+	
+	
+	output reg ofreepool [63:0];
+	output logic [6:0] orat [31:0];
   
 	always @ (posedge clk) begin
 		for (j = 0; j < 64; j = j+1) begin
@@ -139,7 +128,7 @@ module rename (
 		// case SW
 		else if (opcode_2 == 7'b0100011) begin
 			newrs1_2 = rat[rs1_2];
-			newrs2_2 = rat [rs2_2];
+			newrs2_2 = rat[rs2_2];
 			newrd_2 = 0;
 		end
 		else begin
