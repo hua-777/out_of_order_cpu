@@ -46,37 +46,37 @@ module reservation_station(
 	
 	input clk;
 	
-	input reg [5:0] rs1_1;
-	input reg [5:0] rs2_1;
-	input reg [5:0] rd_1;
+	input reg [4:0] rs1_1;
+	input reg [4:0] rs2_1;
+	input reg [4:0] rd_1;
 	input reg [31:0] imm_1;
 	input reg [2:0] alu_op_1;
 	input reg [6:0] opcode_1;
 	
-	input reg [5:0] rs1_2;
-	input reg [5:0] rs2_2;
-	input reg [5:0] rd_2;
+	input reg [4:0] rs1_2;
+	input reg [4:0] rs2_2;
+	input reg [4:0] rd_2;
 	input reg [31:0] imm_2;
 	input reg [2:0] alu_op_2;
 	input reg [6:0] opcode_2;
 	
-	output reg [5:0] rs1_o_1;
-	output reg [5:0] rs2_o_1;
-	output reg [5:0] rd_o_1;
+	output reg [4:0] rs1_o_1;
+	output reg [4:0] rs2_o_1;
+	output reg [4:0] rd_o_1;
 	output reg [31:0] imm_o_1;
 	output reg [2:0] alu_op_o_1;
 	output reg [6:0] opcode_o_1;
 	
-	output reg [5:0] rs1_o_2;
-	output reg [5:0] rs2_o_2;
-	output reg [5:0] rd_o_2;
+	output reg [4:0] rs1_o_2;
+	output reg [4:0] rs2_o_2;
+	output reg [4:0] rd_o_2;
 	output reg [31:0] imm_o_2;
 	output reg [2:0] alu_op_o_2;
 	output reg [6:0] opcode_o_2;
 		
-	output reg [5:0] rs1_o_3;
-	output reg [5:0] rs2_o_3;
-	output reg [5:0] rd_o_3;
+	output reg [4:0] rs1_o_3;
+	output reg [4:0] rs2_o_3;
+	output reg [4:0] rd_o_3;
 	output reg [31:0] imm_o_3;
 	output reg [2:0] alu_op_o_3;
 	output reg [6:0] opcode_o_3;
@@ -115,7 +115,7 @@ module reservation_station(
 		//reg s2_ready;
 		reg [31:0] imm;
 		reg [1:0] func_unit;
-		reg [4:0] rob_index;	
+		//reg rob_index;	
 	} res_entry;
 	
 	typedef res_entry rs_table [32];
@@ -124,61 +124,8 @@ module reservation_station(
 	
 	integer size = 0;
 	
-	reg [4:0] current_rob_index = 0;
-	
 	always @ (posedge clk) begin	
 		func_units = new_func_units;
-		
-		// dispatch logic
-		for (i = 0; i < 32; i = i+1) begin
-			if (!(rs_table[i].inuse))
-				break;
-		end
-		// non memory type
-		if (opcode_1 ==  7'b0110011 || opcode_1 == 7'b0010011) begin
-			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, current_fu, current_rob_index};
-			current_fu = !current_fu;
-		end
-		// memory type
-		else if (opcode_1 == 7'b0000011 || opcode_1 == 7'b0100011) begin
-			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, 2, current_rob_index};
-		end
-		else begin
-			// invalid opcode!
-		end
-		
-		if (opcode_1 != 7'b0100011) begin
-			reg_ready[rd_1] = 0;
-		end
-		
-		current_rob_index = current_rob_index + 1;
-		
-		// dispatch logic
-		for (i = 0; i < 32; i = i+1) begin
-			if (!(rs_table[i].inuse))
-				break;
-		end
-		// non memory type
-		if (opcode_2 ==  7'b0110011 || opcode_2 == 7'b0010011) begin
-			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, current_fu, current_rob_index};
-			current_fu = !current_fu;
-		end
-		// memory type
-		else if (opcode_2 == 7'b0000011 || opcode_2 == 7'b0100011) begin
-			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, 2, current_rob_index};
-		end
-		else begin
-			// invalid opcode!
-		end
-		
-		if (opcode_2 != 7'b0100011) begin
-			reg_ready[rd_2] = 0;
-		end
-		
-		current_rob_index = current_rob_index + 1;
-
-		size = size + 2;
-		
 		// issue logic
 		for (i = 0; i < 32; i = i+1) begin
 			if (rs_table[i].inuse) begin
@@ -214,7 +161,6 @@ module reservation_station(
 							opcode_o_3 = rs_table[i].opcode;
 							func_unit[2] = 0;
 						end
-						rs_table[i].iuse = 0;
 						size = size - 1;
 					end
 				end
@@ -249,13 +195,59 @@ module reservation_station(
 							opcode_o_3 = rs_table[i].opcode;
 							func_unit[2] = 0;
 						end
-						rs_table[i].iuse = 0;
 						size = size - 1;
-
 					end
 				end
 			end
 		end
+		
+		
+		// dispatch logic
+		for (i = 0; i < 32; i = i+1) begin
+			if (!(rs_table[i].inuse))
+				break;
+		end
+		// non memory type
+		if (opcode_1 ==  7'b0110011 || opcode_1 == 7'b0010011) begin
+			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, current_fu};
+			current_fu = !current_fu;
+		end
+		// memory type
+		else if (opcode_1 == 7'b0000011 || opcode_1 == 7'b0100011) begin
+			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, 2};
+		end
+		else begin
+			// invalid opcode!
+		end
+		
+		if (opcode_1 != 7'b0100011) begin
+			reg_ready[rd_1] = 0;
+		end
+		
+		// dispatch logic
+		for (i = 0; i < 32; i = i+1) begin
+			if (!(rs_table[i].inuse))
+				break;
+		end
+		// non memory type
+		if (opcode_2 ==  7'b0110011 || opcode_2 == 7'b0010011) begin
+			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, current_fu};
+			current_fu = !current_fu;
+		end
+		// memory type
+		else if (opcode_2 == 7'b0000011 || opcode_2 == 7'b0100011) begin
+			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, 2};
+		end
+		else begin
+			// invalid opcode!
+		end
+		
+		if (opcode_2 != 7'b0100011) begin
+			reg_ready[rd_2] = 0;
+		end
+		
+		size = size + 2;
+		
 	end
 	
 endmodule
