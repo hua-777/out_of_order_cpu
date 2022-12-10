@@ -46,37 +46,37 @@ module reservation_station(
 	
 	input clk;
 	
-	input reg [4:0] rs1_1;
-	input reg [4:0] rs2_1;
-	input reg [4:0] rd_1;
+	input reg [5:0] rs1_1;
+	input reg [5:0] rs2_1;
+	input reg [5:0] rd_1;
 	input reg [31:0] imm_1;
 	input reg [2:0] alu_op_1;
 	input reg [6:0] opcode_1;
 	
-	input reg [4:0] rs1_2;
-	input reg [4:0] rs2_2;
-	input reg [4:0] rd_2;
+	input reg [5:0] rs1_2;
+	input reg [5:0] rs2_2;
+	input reg [5:0] rd_2;
 	input reg [31:0] imm_2;
 	input reg [2:0] alu_op_2;
 	input reg [6:0] opcode_2;
 	
-	output reg [4:0] rs1_o_1;
-	output reg [4:0] rs2_o_1;
-	output reg [4:0] rd_o_1;
+	output reg [5:0] rs1_o_1;
+	output reg [5:0] rs2_o_1;
+	output reg [5:0] rd_o_1;
 	output reg [31:0] imm_o_1;
 	output reg [2:0] alu_op_o_1;
 	output reg [6:0] opcode_o_1;
 	
-	output reg [4:0] rs1_o_2;
-	output reg [4:0] rs2_o_2;
-	output reg [4:0] rd_o_2;
+	output reg [5:0] rs1_o_2;
+	output reg [5:0] rs2_o_2;
+	output reg [5:0] rd_o_2;
 	output reg [31:0] imm_o_2;
 	output reg [2:0] alu_op_o_2;
 	output reg [6:0] opcode_o_2;
 		
-	output reg [4:0] rs1_o_3;
-	output reg [4:0] rs2_o_3;
-	output reg [4:0] rd_o_3;
+	output reg [5:0] rs1_o_3;
+	output reg [5:0] rs2_o_3;
+	output reg [5:0] rd_o_3;
 	output reg [31:0] imm_o_3;
 	output reg [2:0] alu_op_o_3;
 	output reg [6:0] opcode_o_3;
@@ -126,7 +126,6 @@ module reservation_station(
 	
 	always @ (posedge clk) begin	
 		func_units = new_func_units;
-		// issue logic
 		
 		// dispatch logic
 		for (i = 0; i < 32; i = i+1) begin
@@ -173,6 +172,8 @@ module reservation_station(
 		end
 		
 		size = size + 2;
+		
+		// issue logic
 		for (i = 0; i < 32; i = i+1) begin
 			if (rs_table[i].inuse) begin
 				// check if both source registers are ready
