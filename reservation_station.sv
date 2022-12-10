@@ -115,7 +115,7 @@ module reservation_station(
 		//reg s2_ready;
 		reg [31:0] imm;
 		reg [1:0] func_unit;
-		//reg rob_index;	
+		reg [4:0] rob_index;	
 	} res_entry;
 	
 	typedef res_entry rs_table [32];
@@ -123,6 +123,8 @@ module reservation_station(
 	reg current_fu = 0;
 	
 	integer size = 0;
+	
+	reg [4:0] current_rob_index = 0;
 	
 	always @ (posedge clk) begin	
 		func_units = new_func_units;
@@ -134,12 +136,12 @@ module reservation_station(
 		end
 		// non memory type
 		if (opcode_1 ==  7'b0110011 || opcode_1 == 7'b0010011) begin
-			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, current_fu};
+			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, current_fu, current_rob_index};
 			current_fu = !current_fu;
 		end
 		// memory type
 		else if (opcode_1 == 7'b0000011 || opcode_1 == 7'b0100011) begin
-			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, 2};
+			rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, rs2_1, imm_1, 2, current_rob_index};
 		end
 		else begin
 			// invalid opcode!
@@ -149,6 +151,8 @@ module reservation_station(
 			reg_ready[rd_1] = 0;
 		end
 		
+		current_rob_index = current_rob_index + 1;
+		
 		// dispatch logic
 		for (i = 0; i < 32; i = i+1) begin
 			if (!(rs_table[i].inuse))
@@ -156,12 +160,12 @@ module reservation_station(
 		end
 		// non memory type
 		if (opcode_2 ==  7'b0110011 || opcode_2 == 7'b0010011) begin
-			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, current_fu};
+			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, current_fu, current_rob_index};
 			current_fu = !current_fu;
 		end
 		// memory type
 		else if (opcode_2 == 7'b0000011 || opcode_2 == 7'b0100011) begin
-			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, 2};
+			rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, rs2_2, imm_2, 2, current_rob_index};
 		end
 		else begin
 			// invalid opcode!
@@ -171,6 +175,8 @@ module reservation_station(
 			reg_ready[rd_2] = 0;
 		end
 		
+		current_rob_index = current_rob_index + 1;
+
 		size = size + 2;
 		
 		// issue logic
