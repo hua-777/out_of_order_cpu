@@ -16,10 +16,8 @@ module rename (
 	newrs1_2,
 	newrs2_2,
 	newrd_2,
-	irat,
-	ifreepool,
-	orat,
-	ofreepool,
+	rat,
+	free_regs,
 );
   
 
@@ -46,15 +44,30 @@ module rename (
 	output reg [5:0] newrs1_2;
 	output reg [5:0] newrs2_2;
 	output reg [5:0] newrd_2;
-
-	input reg ifreepool [63:0];
-	input logic [6:0] irat [31:0];
 	
+	input free_regs [63:0]; //signal from retire that tells us which regs are now free, using 1 hot encoding 
+	reg free_pool [63:0];
+	//freepool = freepool or free_regs
 	
-	output reg ofreepool [63:0];
-	output logic [6:0] orat [31:0];
+	output reg [6:0] rat [31:0];
+	
+	integer i = 0;
+	initial begin
+		//Free pool
+		for (i=0; i<32; i=i+1) begin
+			free_pool[i] = 0;
+		end 
+		for (i=32; i<64; i=i+1) begin
+			free_pool[i] = 1;
+		end
+		//RAT 
+		for (i=0; i<32; i=i+1) begin
+			rat[i] = i;
+		end 
+	end
   
 	always @ (posedge clk) begin
+		freepool = freepool | free_regs;
 		for (j = 0; j < 64; j = j+1) begin
 			if (freepool[j])
 				break;

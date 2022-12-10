@@ -1,5 +1,4 @@
 `timescale 1ns/1ns // Tell Questa what time scale to run at
-import rezzmaster::*;
 
 module cpu(clk,
 				newrs1_1,
@@ -8,23 +7,15 @@ module cpu(clk,
 				newrs1_2,
 				newrs2_2,				
 				newrd_2,
-				freepool,
 				rat,
-				regfile,
-				regready,
-				res_station,
+				reg_file,
 				mem,
-				fu
 				);
 				
 	output reg clk = 0;
 	reg [7:0] pc = 0;
 	
-	output reg freepool [63:0];	
-	output logic [6:0] rat [31:0];
-	output logic [6:0] regfile [63:0];
-	output regready [63:0]; 
-	output reservation_station res_station;
+	output logic [6:0] reg_file [63:0];
 	
 	reg [31:0] inst1;
 	reg [31:0] inst2;
@@ -116,6 +107,7 @@ module cpu(clk,
 	output reg [5:0] newrs2_2;					
 	output reg [5:0] newrd_2;
 	
+	reg [63:0] free_regs;
 
 	rename rename_module(
 					.clk(clk),
@@ -136,46 +128,65 @@ module cpu(clk,
 					.newrs2_2(newrs2_2),
 					.newrd_2(newrd_2),
 					.rat(rat),
-					.freepool(freepool)
+					.free_regs(free_regs)
 					);
 	
-	dispatch dispatch_module1(
-					.clk(clk),
-					.rs1(newrs1_1),
-					.rs2(newrs2_1),
-					.freepool(freepool),
-					.rd(newrd_1),
-					.imm(imm_1),
-					.rstation(),
-	);
+	reservation_station rs_module(
+clk,
+
+rs1_1,
+rs2_1,
+rd_1,
+imm_1,
+alu_op_1,
+opcode_1,
+
+rs1_2,
+rs2_2,
+rd_2,
+imm_2,
+alu_op_2,
+opcode_2,
+
+rs1_o_1,
+rs2_o_1,
+rd_o_1,
+imm_o_1,
+alu_op_o_1,
+opcode_o_1,
+
+rs1_o_2,
+rs2_o_2,
+rd_o_2,
+imm_o_2,
+alu_op_o_2,
+opcode_o_2,		
+				
+rs1_o_3,
+rs2_o_3,
+rd_o_3,
+imm_o_3,
+alu_op_o_3,
+opcode_o_3,					
+				
+free_pool,
+new_func_units,
+
+full
+);
+	
+	
 				
 	initial begin
-		#200;
-		
 		//for loop, initialize RAT and freepool
 		
 		integer i;
-		reg [6:0] j;
-		
-		//RAT 
-		for (i=0; i<32; i=i+1) begin
-			rat[i] = i;
-		end 
-		//Free pool
-		for (i=0; i<32; i=i+1) begin
-			freepool[i] = 0;
-		end 
-		for (i=32; i<64; i=i+1) begin
-			freepool[i] = 1;
-		end
+
 		//Initialize Memory 
 		for (i=0; i<32; i=i+1) begin
 			mem[i] = i;
 		end 
-		//Initialize Functional Units
-		for (i=0; i<3; i=i+1) begin
-			fu[i] = 1;
-		end 		
+		#200
 		$stop;
 	end
 	
