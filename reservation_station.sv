@@ -127,80 +127,6 @@ module reservation_station(
 	always @ (posedge clk) begin	
 		func_units = new_func_units;
 		// issue logic
-		for (i = 0; i < 32; i = i+1) begin
-			if (rs_table[i].inuse) begin
-				// check if both source registers are ready
-				// R TYPE: ADD, SUB, XOR, SRA // S TYPE: SW
-				if (rs_table[i].opcode == 7'b0110011 || rs_table[i].opcode == 7'b0100011) begin
-					if (reg_ready[rs_table[i].rs1] && reg_ready[rs_table[i].rs2] && func_units[rs_table[i].func_unit]) begin
-						// ready to issue
-						if (rs_table[i].func_unit == 0) begin
-							rs1_o_1 = rs_table[i].rs1;
-							rs2_o_1 = rs_table[i].rs2;
-							rsd_o_1 = rs_table[i].rd;
-							imm_o_1 = rs_table[i].imm;
-							alu_op_o_1 = rs_table[i].alu_op;
-							opcode_o_1 = rs_table[i].opcode;
-							func_unit[0] = 0;
-						end
-						else if (rs_table[i].func_unit == 1) begin
-							rs1_o_2 = rs_table[i].rs1;
-							rs2_o_2 = rs_table[i].rs2;
-							rsd_o_2 = rs_table[i].rd;
-							imm_o_2 = rs_table[i].imm;
-							alu_op_o_2 = rs_table[i].alu_op;
-							opcode_o_2 = rs_table[i].opcode;
-							func_unit[1] = 0;
-						end
-						else begin
-							rs1_o_3 = rs_table[i].rs1;
-							rs2_o_3 = rs_table[i].rs2;
-							rsd_o_3 = rs_table[i].rd;
-							imm_o_3 = rs_table[i].imm;
-							alu_op_o_3 = rs_table[i].alu_op;
-							opcode_o_3 = rs_table[i].opcode;
-							func_unit[2] = 0;
-						end
-						size = size - 1;
-					end
-				end
-				// I TYPE: ADDI, ANDI // I TYPE: LW
-				else if (rs_table[i].opcode == 7'b0010011 && rs_table[i].opcode == 7'b0000011) begin
-					if (reg_ready[rs_table[i].rs1] && func_units[rs_table[i].func_unit]) begin
-						// ready to issue
-						if (rs_table[i].func_unit == 0) begin
-							rs1_o_1 = rs_table[i].rs1;
-							rs2_o_1 = rs_table[i].rs2;
-							rsd_o_1 = rs_table[i].rd;
-							imm_o_1 = rs_table[i].imm;
-							alu_op_o_1 = rs_table[i].alu_op;
-							opcode_o_1 = rs_table[i].opcode;
-							func_unit[0] = 0;
-						end
-						else if (rs_table[i].func_unit == 1) begin
-							rs1_o_2 = rs_table[i].rs1;
-							rs2_o_2 = rs_table[i].rs2;
-							rsd_o_2 = rs_table[i].rd;
-							imm_o_2 = rs_table[i].imm;
-							alu_op_o_2 = rs_table[i].alu_op;
-							opcode_o_2 = rs_table[i].opcode;
-							func_unit[1] = 0;
-						end
-						else begin
-							rs1_o_3 = rs_table[i].rs1;
-							rs2_o_3 = rs_table[i].rs2;
-							rsd_o_3 = rs_table[i].rd;
-							imm_o_3 = rs_table[i].imm;
-							alu_op_o_3 = rs_table[i].alu_op;
-							opcode_o_3 = rs_table[i].opcode;
-							func_unit[2] = 0;
-						end
-						size = size - 1;
-					end
-				end
-			end
-		end
-		
 		
 		// dispatch logic
 		for (i = 0; i < 32; i = i+1) begin
@@ -247,7 +173,82 @@ module reservation_station(
 		end
 		
 		size = size + 2;
-		
+		for (i = 0; i < 32; i = i+1) begin
+			if (rs_table[i].inuse) begin
+				// check if both source registers are ready
+				// R TYPE: ADD, SUB, XOR, SRA // S TYPE: SW
+				if (rs_table[i].opcode == 7'b0110011 || rs_table[i].opcode == 7'b0100011) begin
+					if (reg_ready[rs_table[i].rs1] && reg_ready[rs_table[i].rs2] && func_units[rs_table[i].func_unit]) begin
+						// ready to issue
+						if (rs_table[i].func_unit == 0) begin
+							rs1_o_1 = rs_table[i].rs1;
+							rs2_o_1 = rs_table[i].rs2;
+							rsd_o_1 = rs_table[i].rd;
+							imm_o_1 = rs_table[i].imm;
+							alu_op_o_1 = rs_table[i].alu_op;
+							opcode_o_1 = rs_table[i].opcode;
+							func_unit[0] = 0;
+						end
+						else if (rs_table[i].func_unit == 1) begin
+							rs1_o_2 = rs_table[i].rs1;
+							rs2_o_2 = rs_table[i].rs2;
+							rsd_o_2 = rs_table[i].rd;
+							imm_o_2 = rs_table[i].imm;
+							alu_op_o_2 = rs_table[i].alu_op;
+							opcode_o_2 = rs_table[i].opcode;
+							func_unit[1] = 0;
+						end
+						else begin
+							rs1_o_3 = rs_table[i].rs1;
+							rs2_o_3 = rs_table[i].rs2;
+							rsd_o_3 = rs_table[i].rd;
+							imm_o_3 = rs_table[i].imm;
+							alu_op_o_3 = rs_table[i].alu_op;
+							opcode_o_3 = rs_table[i].opcode;
+							func_unit[2] = 0;
+						end
+						rs_table[i].iuse = 0;
+						size = size - 1;
+					end
+				end
+				// I TYPE: ADDI, ANDI // I TYPE: LW
+				else if (rs_table[i].opcode == 7'b0010011 && rs_table[i].opcode == 7'b0000011) begin
+					if (reg_ready[rs_table[i].rs1] && func_units[rs_table[i].func_unit]) begin
+						// ready to issue
+						if (rs_table[i].func_unit == 0) begin
+							rs1_o_1 = rs_table[i].rs1;
+							rs2_o_1 = rs_table[i].rs2;
+							rsd_o_1 = rs_table[i].rd;
+							imm_o_1 = rs_table[i].imm;
+							alu_op_o_1 = rs_table[i].alu_op;
+							opcode_o_1 = rs_table[i].opcode;
+							func_unit[0] = 0;
+						end
+						else if (rs_table[i].func_unit == 1) begin
+							rs1_o_2 = rs_table[i].rs1;
+							rs2_o_2 = rs_table[i].rs2;
+							rsd_o_2 = rs_table[i].rd;
+							imm_o_2 = rs_table[i].imm;
+							alu_op_o_2 = rs_table[i].alu_op;
+							opcode_o_2 = rs_table[i].opcode;
+							func_unit[1] = 0;
+						end
+						else begin
+							rs1_o_3 = rs_table[i].rs1;
+							rs2_o_3 = rs_table[i].rs2;
+							rsd_o_3 = rs_table[i].rd;
+							imm_o_3 = rs_table[i].imm;
+							alu_op_o_3 = rs_table[i].alu_op;
+							opcode_o_3 = rs_table[i].opcode;
+							func_unit[2] = 0;
+						end
+						rs_table[i].iuse = 0;
+						size = size - 1;
+
+					end
+				end
+			end
+		end
 	end
 	
 endmodule
