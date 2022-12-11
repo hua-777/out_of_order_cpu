@@ -108,18 +108,18 @@ module rob(clk,
 		if (rob[head].iscomplete) begin
 			free_regs_r = (1 << rob[head].old_d_reg) | free_regs_r;
 			rob[head].in_use = 0;
-			head = head + 1;
-			num_retired = 1;
 			inst1_val_o = rob[head].rd_value;
 			opcode_inst1_o = rob[head].rd_opcode;
+			head = head + 1;
+			num_retired = 1;
 		end
 		if (rob[head].iscomplete) begin
 			free_regs_r = (1 << rob[head].old_d_reg) | free_regs_r;
 			rob[head].in_use = 0;
-			head = head + 1;
-			num_retired = 2;
 			inst1_val_o = rob[head].rd_value;
 			opcode_inst1_o = rob[head].rd_opcode;
+			head = head + 1;
+			num_retired = 2;
 		end
 		
 		
