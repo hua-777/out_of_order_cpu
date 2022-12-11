@@ -1,4 +1,5 @@
 `timescale 1ns/1ns // Tell Questa what time scale to run at
+import respackage::*;
 
 module rob(clk,
 				curr_dest_reg_1,
@@ -14,6 +15,15 @@ module rob(clk,
 				inst_1_index,
 				inst_2_index,
 				inst_3_index,
+				line1_i,
+				line2_i,
+				line3_i,
+				line1_val_i,
+				line2_val_i,
+				line3_val_i,
+				opcode_inst_1,
+				opcode_inst_2,
+				num_retired,
 				);
 				
 	typedef struct {
@@ -41,6 +51,18 @@ module rob(clk,
 	output free_regs_r [63:0]; 
 	
 	reg [6:0] rob [31:0];
+	
+	input res_entry line1_i;
+	input res_entry line2_i;
+	input res_entry line3_i;
+	
+	input reg [5:0] line1_val_i;
+	input reg [5:0] line2_val_i;
+	input reg [5:0] line3_val_i;
+	
+	input reg opcode_inst_1;
+	input reg opcode_inst_2;
+	output reg [1:0] num_retired;
 
 	initial begin
 		head = 0;
@@ -67,16 +89,20 @@ module rob(clk,
 		if (flag_fu_3)
 			rob[inst_2_index].is_complete = 1;
 		
+		
+		num_retired = 0;
 		if (rob[head].iscomplete) begin
 			free_regs_r[rob[head].old_d_reg] = 1;
 			rob[head].in_use = 0;
 			head = head + 1;
+			num_retired = 1;
 		end
 		if (rob[head].iscomplete) begin
 			free_regs_r[rob[head].old_d_reg] = 1;
 			free_regs_r[rob[head].old_d_reg] = 1;
 			rob[head].in_use = 0;
 			head = head + 1;
+			num_retired = 2;
 		end
 		
 		
