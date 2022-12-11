@@ -143,7 +143,7 @@ module decode(clk,
 			mem_write <= 0;
 			// LW
 			if (funct3 == 3'b010) begin
-				imm[11:5] <= inst[31:20];
+				imm[11:0] <= inst[31:20];
 				imm[31:12] <= 0;
 				reg_write <= 1;
 				mem_read <= 1;

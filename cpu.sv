@@ -1,21 +1,19 @@
 `timescale 1ns/1ns // Tell Questa what time scale to run at
 
-module cpu(clk,
-				newrs1_1,
-				newrs2_1,
-				newrd_1,
-				newrs1_2,
-				newrs2_2,				
-				newrd_2,
-				rat,
-				reg_file,
-				mem,
-				);
+
+module cpu
+import my_package::*;
+
+	(clk,
+	register_file,
+	memory
+	);
 				
 	output reg clk = 0;
 	reg [7:0] pc = 0;
 	
-	output logic [6:0] reg_file [63:0];
+	output reg [31:0] register_file [0:63];
+	output reg [31:0] memory [0:63];
 	
 	reg [31:0] inst1;
 	reg [31:0] inst2;
@@ -60,6 +58,8 @@ module cpu(clk,
 	reg mem_read_2;
 	reg mem_write_2;
 	reg [6:0] opcode_2;
+	
+	reg [31:0] clk_counter = 0;
 
 
 	decode decode_module_1(.clk(clk),
@@ -99,14 +99,26 @@ module cpu(clk,
 					);
 					
 
-	output reg [5:0] newrs1_1;
-	output reg [5:0] newrs2_1;
-	output reg [5:0] newrd_1;
+	reg [5:0] new_rs1_1;
+	reg [5:0] new_rs2_1;
+	reg [5:0] new_rd_1;
 
-	output reg [5:0] newrs1_2;
-	output reg [5:0] newrs2_2;					
-	output reg [5:0] newrd_2;
+	reg [5:0] new_rs1_2;
+	reg [5:0] new_rs2_2;					
+	reg [5:0] new_rd_2;
 	
+	
+	reg [5:0] old_rd_1;
+	reg [31:0] new_imm_1;
+	reg [6:0] new_opcode_1;
+	reg [2:0] new_alu_op_1;
+	
+	reg [5:0] old_rd_2;
+	reg [31:0] new_imm_2;
+	reg [6:0] new_opcode_2;
+	reg [2:0] new_alu_op_2;
+	
+	reg [5:0] rat [0:31];
 	reg [63:0] free_regs;
 
 	rename rename_module(
@@ -116,84 +128,164 @@ module cpu(clk,
 					.rd_1(rd_1),
 					.imm_1(imm_1),
 					.opcode_1(opcode_1),
-					.newrs1_1(newrs1_1),
-					.newrs2_1(newrs2_1),
-					.newrd_1(newrd_1),
+					
+					.alu_op_1(alu_op_1),
+					
+					.new_rs1_1(new_rs1_1),
+					.new_rs2_1(new_rs2_1),
+					.new_rd_1(new_rd_1),
+					
+					.old_rd_1(old_rd_1),
+					.new_imm_1(new_imm_1),
+					.new_opcode_1(new_opcode_1),
+					.new_alu_op_1(new_alu_op_1),
+					
 					.rs1_2(rs1_2),
 					.rs2_2(rs2_2),
 					.rd_2(rd_2),
 					.imm_2(imm_2),
 					.opcode_2(opcode_2),
-					.newrs1_2(newrs1_2),
-					.newrs2_2(newrs2_2),
-					.newrd_2(newrd_2),
+					.alu_op_2(alu_op_2),
+					
+					.new_rs1_2(new_rs1_2),
+					.new_rs2_2(new_rs2_2),
+					.new_rd_2(new_rd_2),
+					
+					.old_rd_2(old_rd_2),
+					.new_imm_2(new_imm_2),
+					.new_opcode_2(new_opcode_2),
+					.new_alu_op_2(new_alu_op_2),
+					
+					
 					.rat(rat),
 					.free_regs(free_regs)
 					);
+					
+	
+	res_entry line_1;
+	res_entry line_2;
+	res_entry line_3;
+	reg [2:0] func_units;
+	
+	
+	res_entry line_1_o;
+	res_entry line_2_o;
+	res_entry line_3_o;
+	
+	reg [31:0] val_1;
+	reg [31:0] val_2;
+	reg [31:0] val_3;
+	reg [2:0] func_units_o;
+	reg [63:0] reg_ready_o;
 	
 	reservation_station rs_module(
-clk,
+					.clk(clk),		
+					.clk_counter(clk_counter),
+					
+					.rs1_1(new_rs1_1),
+					.rs2_1(new_rs2_1),
+					.rd_1(new_rd_1),
+					.imm_1(new_imm_1),
+					.alu_op_1(new_alu_op_1),
+					.opcode_1(new_opcode_1),
+					
+					.rs1_2(new_rs1_2),
+					.rs2_2(new_rs2_2),
+					.rd_2(new_rd_2),
+					.imm_2(new_imm_2),
+					.alu_op_2(new_alu_op_2),
+					.opcode_2(new_opcode_2),
+					
+					.line_1(line_1),
+					.line_2(line_2),
+					.line_3(line_3),				
+					.register_file(register_file),				
+					.func_units(func_units),
+					
+					.val_1(val_1),
+					.val_2(val_2),
+					.val_3(val_3),
+					.line_1_o(line_1_o),
+					.line_2_o(line_2_o),
+					.line_3_o(line_3_o),	
+					.func_units_o(func_units_o),
 
-rs1_1,
-rs2_1,
-rd_1,
-imm_1,
-alu_op_1,
-opcode_1,
-
-rs1_2,
-rs2_2,
-rd_2,
-imm_2,
-alu_op_2,
-opcode_2,
-
-rs1_o_1,
-rs2_o_1,
-rd_o_1,
-imm_o_1,
-alu_op_o_1,
-opcode_o_1,
-
-rs1_o_2,
-rs2_o_2,
-rd_o_2,
-imm_o_2,
-alu_op_o_2,
-opcode_o_2,		
-				
-rs1_o_3,
-rs2_o_3,
-rd_o_3,
-imm_o_3,
-alu_op_o_3,
-opcode_o_3,					
-				
-free_pool,
-new_func_units,
-
-full
-);
+					.reg_ready_o(reg_ready_o)
+					);
 	
 	
-				
-	initial begin
-		//for loop, initialize RAT and freepool
 		
-		integer i;
 
-		//Initialize Memory 
-		for (i=0; i<32; i=i+1) begin
-			mem[i] = i;
-		end 
-		#200
+
+	issue issue_module(
+		.clk(clk),
+
+		.line_1(line_1),
+		.line_2(line_2),
+		.line_3(line_3),
+		
+		.line_1_o(line_1_o),
+		.line_2_o(line_2_o),
+		.line_3_o(line_3_o),
+		
+		.val_1(val_1),
+		.val_2(val_2),
+		.val_3(val_3),
+		
+		.memory(memory),
+
+		.func_units(func_units),
+		.func_units_o(func_units_o)
+	);
+	
+	
+	reg [1:0] num_retired;
+	rob_entry rob_o_1;
+	rob_entry rob_o_2;
+	
+	reorder_buffer reorder_buffer_module(
+		.clk(clk),
+		.clk_counter(clk_counter),
+		.curr_dest_reg_1(new_rd_1),
+		.old_dest_reg_1(old_rd_1),
+		.curr_dest_reg_2(new_rd_2),
+		.old_dest_reg_2(old_rd_2),
+		.line1_i(line_1_o),
+		.line2_i(line_2_o),
+		.line3_i(line_3_o),
+		.line1_val_i(val_1),
+		.line2_val_i(val_2),
+		.line3_val_i(val_3),
+		.num_retired(num_retired),
+		.rob_o_1(rob_o_1),
+		.rob_o_2(rob_o_2),
+		.func_units_flag(func_units_o)
+	);
+	
+		
+	writeback writeback_module(
+			.clk(clk),
+			.rob_o_1(rob_o_1),
+			.rob_o_2(rob_o_2),
+			.num_retired(num_retired),
+			.reg_ready_o(reg_ready_o),
+			.free_regs(free_regs),
+			.register_file(register_file),
+			.memory(memory)
+	);
+	
+	initial begin
+		#400;
 		$stop;
 	end
 	
 	always begin
-		clk <= ~clk;
+		clk = ~clk;
+		if (clk == 1) begin
+			clk_counter = clk_counter + 1;
+		end
 		#20; 
-		pc <= pc + 4;
+		pc = pc + 4;
 	end
   
 endmodule

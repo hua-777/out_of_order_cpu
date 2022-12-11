@@ -7,14 +7,14 @@ module rename (
    opcode_1,
 	alu_op_1,
 	
-	newrs1_1,
-	newrs2_1,
-	newrd_1,
-	oldrd_1,
+	new_rs1_1,
+	new_rs2_1,
+	new_rd_1,
+	old_rd_1,
 	
-	newimm_1,
-	newopcode_1,
-	newalu_op_1,
+	new_imm_1,
+	new_opcode_1,
+	new_alu_op_1,
 	
 	rs1_2,
    rs2_2,
@@ -23,22 +23,21 @@ module rename (
    opcode_2,
 	alu_op_2,
 	
-	newrs1_2,
-	newrs2_2,
-	newrd_2,
-	oldrd_2,
+	new_rs1_2,
+	new_rs2_2,
+	new_rd_2,
+	old_rd_2,
 	
-	newimm_2,
-	newopcode_2,
-	newalu_op_2,
+	new_imm_2,
+	new_opcode_2,
+	new_alu_op_2,
 	
 	rat,
-	free_regs,
+	free_regs
 );
   
 
 	input clk;
-	input reg [6:0] rat [31:0];
 	
 	input reg [4:0] rs1_1;
 	input reg [4:0] rs2_1;
@@ -46,17 +45,17 @@ module rename (
 	input reg [31:0] imm_1;
 	input reg [6:0] opcode_1;
 	
-	input reg [2:0] alu_op_1;//new
+	input reg [2:0] alu_op_1;//new_
 
-	output reg [5:0] newrs1_1;
-	output reg [5:0] newrs2_1;
-	output reg [5:0] newrd_1;
+	output reg [5:0] new_rs1_1;
+	output reg [5:0] new_rs2_1;
+	output reg [5:0] new_rd_1;
 	
-	output reg [5:0] oldrd_1;
+	output reg [5:0] old_rd_1;
 	
-	output reg [31:0] newimm_1; // new
-	output reg [6:0] newopcode_1; // new
-	output reg [2:0] newalu_op_1; // new
+	output reg [31:0] new_imm_1; // new_
+	output reg [6:0] new_opcode_1; // new_
+	output reg [2:0] new_alu_op_1; // new_
 	
 	input reg [4:0] rs1_2;
 	input reg [4:0] rs2_2;
@@ -64,33 +63,33 @@ module rename (
 	input reg [31:0] imm_2;
 	input reg [6:0] opcode_2;
 	
-	input reg [2:0] alu_op_2;//new
+	input reg [2:0] alu_op_2;//new_
 	
-	output reg [5:0] newrs1_2;
-	output reg [5:0] newrs2_2;
-	output reg [5:0] newrd_2;
+	output reg [5:0] new_rs1_2;
+	output reg [5:0] new_rs2_2;
+	output reg [5:0] new_rd_2;
 	
-	output reg [5:0] oldrd_2;
+	output reg [5:0] old_rd_2;
 
 	
-	output reg [31:0] newimm_2; // new
-	output reg [6:0] newopcode_2; // new
-	output reg [2:0] newalu_op_2; // new
+	output reg [31:0] new_imm_2; // new_
+	output reg [6:0] new_opcode_2; // new_
+	output reg [2:0] new_alu_op_2; // new_
 	
-	input free_regs [63:0]; //signal from retire that tells us which regs are now free, using 1 hot encoding 
-	reg free_pool [63:0];
+	input [63:0] free_regs; //signal from retire that tells us which regs are now free, using 1 hot encoding 
+	reg [63:0] freepool;
 	//freepool = freepool or free_regs
 	
-	output reg [6:0] rat [31:0];
+	output reg [5:0] rat [0:31];
 	
 	integer i = 0;
 	initial begin
 		//Free pool
 		for (i=0; i<32; i=i+1) begin
-			free_pool[i] = 0;
+			freepool[i] = 0;
 		end 
 		for (i=32; i<64; i=i+1) begin
-			free_pool[i] = 1;
+			freepool[i] = 1;
 		end
 		//RAT 
 		for (i=0; i<32; i=i+1) begin
@@ -98,16 +97,18 @@ module rename (
 		end 
 	end
   
+	integer j;
+	
 	always @ (posedge clk) begin
 		freepool = freepool | free_regs;
 		
-		newimm_1 = imm_1;
-		newopcode_1 = opcode_1;
-		newalu_op_1 = alu_op_1;
+		new_imm_1 = imm_1;
+		new_opcode_1 = opcode_1;
+		new_alu_op_1 = alu_op_1;
 		
-		newimm_2 = imm_2;
-		newopcode_2 = opcode_2;
-		newalu_op_2 = alu_op_2;
+		new_imm_2 = imm_2;
+		new_opcode_2 = opcode_2;
+		new_alu_op_2 = alu_op_2;
 		
 		for (j = 0; j < 64; j = j+1) begin
 			if (freepool[j])
@@ -116,43 +117,43 @@ module rename (
 
 		//case ADD, SUB, XOR, SRA
 		if (opcode_1 == 7'b0110011) begin
-			newrs1_1 = rat[rs1_1];
-			newrs2_1 = rat[rs2_1];
-			oldrd_1 = rat[rd_1];
-			newrd_1 = j;
+			new_rs1_1 = rat[rs1_1];
+			new_rs2_1 = rat[rs2_1];
+			old_rd_1 = rat[rd_1];
+			new_rd_1 = j;
 			rat[rd_1] = j;
 			freepool[j] = 0;
 		end
 		//case ADDI, ANDI
 		else if (opcode_1 == 7'b0010011) begin
-			newrs1_1 = rat[rs1_1];
-			newrs2_1 = 0;
-			oldrd_1 = rat[rd_1];
-			newrd_1 = j;
+			new_rs1_1 = rat[rs1_1];
+			new_rs2_1 = 0;
+			old_rd_1 = rat[rd_1];
+			new_rd_1 = j;
 			rat[rd_1] = j;
 			freepool[j] = 0;
 		end
 		// case LW
 		else if (opcode_1 == 7'b0000011) begin
-			newrs1_1 = rat[rs1_1];
-			newrs2_1 = 0;
-			oldrd_1 = rat[rd_1];
-			newrd_1 = j;
+			new_rs1_1 = rat[rs1_1];
+			new_rs2_1 = 0;
+			old_rd_1 = rat[rd_1];
+			new_rd_1 = j;
 			rat[rd_1] = j;
 			freepool[j] = 0;
 		end
 		// case SW
 		else if (opcode_1 == 7'b0100011) begin
-			newrs1_1 = rat[rs1_1];
-			newrs2_1 = rat [rs2_1];
-			newrd_1 = 0;
-			oldrd_1 = 0;
+			new_rs1_1 = rat[rs1_1];
+			new_rs2_1 = rat [rs2_1];
+			new_rd_1 = 0;
+			old_rd_1 = 0;
 		end
 		else begin
-			newrs1_1 = 0;
-			newrs2_1 = 0;
-			newrd_1 = 0; 
-			oldrd_1 = 0;
+			new_rs1_1 = 0;
+			new_rs2_1 = 0;
+			new_rd_1 = 0; 
+			old_rd_1 = 0;
 		end
 		
 		for (j = 0; j < 64; j = j+1) begin
@@ -162,43 +163,43 @@ module rename (
 
 		//case ADD, SUB, XOR, SRA
 		if (opcode_2 == 7'b0110011) begin
-			newrs1_2 = rat[rs1_2];
-			newrs2_2 = rat[rs2_2];
-			oldrd_2 = rat[rd_2];
-			newrd_2 = j;
+			new_rs1_2 = rat[rs1_2];
+			new_rs2_2 = rat[rs2_2];
+			old_rd_2 = rat[rd_2];
+			new_rd_2 = j;
 			rat[rd_2] = j;
 			freepool[j] = 0;
 		end
 		//case ADDI, ANDI
 		else if (opcode_2 == 7'b0010011) begin
-			newrs1_2 = rat[rs1_2];
-			newrs2_2 = 0;
-			oldrd_2 = rat[rd_2];
-			newrd_2 = j;
+			new_rs1_2 = rat[rs1_2];
+			new_rs2_2 = 0;
+			old_rd_2 = rat[rd_2];
+			new_rd_2 = j;
 			rat[rd_2] = j;
 			freepool[j] = 0;
 		end
 		// case LW
 		else if (opcode_2 == 7'b0000011) begin
-			newrs1_2 = rat[rs1_2];
-			newrs2_2 = 0;
-			oldrd_2 = rat[rd_2];
-			newrd_2 = j;
+			new_rs1_2 = rat[rs1_2];
+			new_rs2_2 = 0;
+			old_rd_2 = rat[rd_2];
+			new_rd_2 = j;
 			rat[rd_2] = j;
 			freepool[j] = 0;
 		end
 		// case SW
 		else if (opcode_2 == 7'b0100011) begin
-			newrs1_2 = rat[rs1_2];
-			newrs2_2 = rat[rs2_2];
-			newrd_2 = 0;
-			oldrd_2 = 0;
+			new_rs1_2 = rat[rs1_2];
+			new_rs2_2 = rat[rs2_2];
+			new_rd_2 = 0;
+			old_rd_2 = 0;
 		end
 		else begin
-			newrs1_2 = 0;
-			newrs2_2 = 0;
-			newrd_2 = 0;    
-			oldrd_2 = 0;			
+			new_rs1_2 = 0;
+			new_rs2_2 = 0;
+			new_rd_2 = 0;    
+			old_rd_2 = 0;			
 		end		
 	end
 endmodule
