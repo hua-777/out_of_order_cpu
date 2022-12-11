@@ -28,6 +28,10 @@ module issue(
 	input res_entry line_2;
 	input res_entry line_3;
 	
+	output res_entry line_1_o;
+	output res_entry line_2_o;
+	output res_entry line_3_o;	
+	
 	input reg [31:0] register_file [0:63];
 	input reg [31:0] memory [0:1023];
 	
@@ -35,7 +39,7 @@ module issue(
 	output reg [2:0] func_units_o;
 	
 	always @ (posedge clk) begin
-		func_units_o = func_units_o;
+		func_units_o = func_units;
 		if (func_units[0]) begin
 			// R TYPE: ADD, SUB, XOR, SRA
 			if (line_1.opcode == 7'b0110011) begin

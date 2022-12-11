@@ -22,9 +22,8 @@ module reservation_station(
 				line_2,
 				line_3,				
 								
-				free_pool,
 				func_units,
-				full
+				//full
 				);
 	
 	input clk;
@@ -46,12 +45,10 @@ module reservation_station(
 	output res_entry line_1;
 	output res_entry line_2;
 	output res_entry line_3;
-
-	input reg free_pool [63:0];
 	
 	output reg [2:0] func_units;
 
-	output full;
+	//output full;
 		
 	reg reg_ready [63:0]; // dont forget to initialize reg_ready to all ones
 	
