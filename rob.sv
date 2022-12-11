@@ -9,9 +9,7 @@ module rob(clk,
 				old_dest_reg_2,
 				rob_index_2,
 				free_regs_r,
-				flag_fu_1,
-				flag_fu_2,
-				flag_fu_3,
+				func_units_flag,
 				inst_1_index,
 				inst_2_index,
 				inst_3_index,
@@ -21,9 +19,11 @@ module rob(clk,
 				line1_val_i,
 				line2_val_i,
 				line3_val_i,
-				opcode_inst_1,
-				opcode_inst_2,
 				num_retired,
+				opcode_inst1_o,
+				opcode_inst2_o,
+				inst1_val_o,
+				inst2_val_o,
 				);
 				
 	typedef struct {
@@ -31,13 +31,17 @@ module rob(clk,
 	reg is_complete;
 	reg [5:0] old_d_reg; 
 	reg [5:0] curr_d_reg;
+	reg [6:0] rd_opcode;
+	reg [5:0] rd_value;
 	} rob_entry;
 	
 	typedef rob_entry reorder_buffer [32];
 	
-	integer head;
+	reg [5:0] head;
 	
 	reorder_buffer rob;
+	
+	input [2:0] reg func_units_flag;
 								
 	input reg clk;
 	input reg [4:0] old_dest_reg_1;
@@ -59,50 +63,63 @@ module rob(clk,
 	input reg [5:0] line1_val_i;
 	input reg [5:0] line2_val_i;
 	input reg [5:0] line3_val_i;
+	 
+	output reg [5:0] inst1_val_o;
+	output reg [5:0] inst2_val_o;
+
+	output reg [6:0] opcode_inst1_o;
+	output reg [6:0] opcode_inst2_o;	
 	
-	input reg opcode_inst_1;
-	input reg opcode_inst_2;
 	output reg [1:0] num_retired;
 
 	initial begin
 		head = 0;
 		integer i;
 		//Initialize freeregs
-		for (i=0; i<63; i=i+1) begin
-			free_regs_r[i] = 0;
-		end		
+		free_regs_r = 0;	
 		//Initialize ROB 
 		for (i=0; i<32; i=i+1) begin
-			rob[i] = '{0, 0, 0, 0};
+			rob[i] = '{0, 0, 0, 0, 0, 0};
 		end	
 	end
 	
 	
 	always @ (posedge clk) begin
-		rob[rob_index_1] = '{1, 0, old_dest_reg_1, curr_dest_reg_1};
-		rob[rob_index_2] = '{1, 0, old_dest_reg_2, curr_dest_reg_2};
+	
+		free_regs_r = 0; 
+		rob[rob_index_1] = '{1, 0, old_dest_reg_1, curr_dest_reg_1, 0, 0};
+		rob[rob_index_2] = '{1, 0, old_dest_reg_2, curr_dest_reg_2, 0, 0};
 		
-		if (flag_fu_1)
-			rob[inst_1_index].is_complete = 1;
-		if (flag_fu_2)
-			rob[inst_2_index].is_complete = 1;
-		if (flag_fu_3)
-			rob[inst_2_index].is_complete = 1;
+		if (func_units_flag == 3'b001)
+			rob[line1_i.rob_index].is_complete = 1; 
+			rob[line1_i.rob_index].rd_opcode = line1_i.opcode;
+			rob[line1_i.rob_index].rd_value = line1_val_i;
+		if (func_units_flag == 3'b010)
+			rob[line2_i.rob_index].is_complete = 1;
+			rob[line2_i.rob_index].rd_opcode = line2_i.opcode;
+			rob[line2_i.rob_index].rd_value = line2_val_i;
+		if (func_units_flag == 3'b100)
+			rob[line3_i.rob_index].is_complete = 1;
+			rob[line3_i.rob_index].rd_opcode = line3_i.opcode;
+			rob[line3_i.rob_index].rd_value = line3_val_i;
 		
 		
 		num_retired = 0;
 		if (rob[head].iscomplete) begin
-			free_regs_r[rob[head].old_d_reg] = 1;
+			free_regs_r = (1 << rob[head].old_d_reg) | free_regs_r;
 			rob[head].in_use = 0;
 			head = head + 1;
 			num_retired = 1;
+			inst1_val_o = rob[head].rd_value;
+			opcode_inst1_o = rob[head].rd_opcode;
 		end
 		if (rob[head].iscomplete) begin
-			free_regs_r[rob[head].old_d_reg] = 1;
-			free_regs_r[rob[head].old_d_reg] = 1;
+			free_regs_r = (1 << rob[head].old_d_reg) | free_regs_r;
 			rob[head].in_use = 0;
 			head = head + 1;
 			num_retired = 2;
+			inst1_val_o = rob[head].rd_value;
+			opcode_inst1_o = rob[head].rd_opcode;
 		end
 		
 		
