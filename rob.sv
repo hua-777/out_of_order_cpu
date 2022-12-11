@@ -45,7 +45,10 @@ module rob(clk,
 	initial begin
 		head = 0;
 		integer i;
-		
+		//Initialize freeregs
+		for (i=0; i<63; i=i+1) begin
+			free_regs_r[i] = 0;
+		end		
 		//Initialize ROB 
 		for (i=0; i<32; i=i+1) begin
 			rob[i] = '{0, 0, 0, 0};
@@ -65,13 +68,18 @@ module rob(clk,
 			rob[inst_2_index].is_complete = 1;
 		
 		if (rob[head].iscomplete) begin
+			free_regs_r[rob[head].old_d_reg] = 1;
 			rob[head].in_use = 0;
 			head = head + 1;
 		end
 		if (rob[head].iscomplete) begin
+			free_regs_r[rob[head].old_d_reg] = 1;
+			free_regs_r[rob[head].old_d_reg] = 1;
 			rob[head].in_use = 0;
 			head = head + 1;
 		end
+		
+		
 			
 	end
 
