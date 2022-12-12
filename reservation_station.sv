@@ -96,6 +96,7 @@ import my_package::*;
 	
 		for (i=0; i<64; i=i+1) begin
 			reg_ready[i] = 1;
+			temp_reg_ready[i] = 1;
 		end
 		
 		for (i = 0; i < 32; i=i+1) begin
@@ -115,12 +116,12 @@ import my_package::*;
 			end
 			// non memory type
 			if (opcode_1 ==  7'b0110011 || opcode_1 == 7'b0010011) begin
-				rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, register_file[rs1_1], rs2_1, register_file[rs2_2], imm_1, current_fu, current_rob_index};
+				rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, register_file[rs1_1], rs2_1, register_file[rs2_1], imm_1, current_fu, current_rob_index};
 				current_fu = !current_fu;
 			end
 			// memory type
 			else if (opcode_1 == 7'b0000011 || opcode_1 == 7'b0100011) begin
-				rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, register_file[rs1_1], rs2_1, register_file[rs2_2], imm_1, current_fu, current_rob_index};
+				rs_table[i] = '{1, alu_op_1, opcode_1, rd_1, rs1_1, register_file[rs1_1], rs2_1, register_file[rs2_1], imm_1, 2, current_rob_index};
 			end
 			else begin
 				// invalid opcode!
@@ -140,11 +141,13 @@ import my_package::*;
 			// non memory type
 			if (opcode_2 ==  7'b0110011 || opcode_2 == 7'b0010011) begin
 				rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, register_file[rs1_2], rs2_2, register_file[rs2_2], imm_2, current_fu, current_rob_index};
+				
+
 				current_fu = !current_fu;
 			end
 			// memory type
 			else if (opcode_2 == 7'b0000011 || opcode_2 == 7'b0100011) begin
-				rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, register_file[rs1_2], rs2_2, register_file[rs2_2], imm_2, current_fu, current_rob_index};
+				rs_table[i] = '{1, alu_op_2, opcode_2, rd_2, rs1_2, register_file[rs1_2], rs2_2, register_file[rs2_2], imm_2, 2, current_rob_index};
 			end
 			else begin
 				// invalid opcode!
@@ -168,7 +171,7 @@ import my_package::*;
 					if (rs_table[i].rs1 == line_1_o.rd) begin
 						rs_table[i].source_1 = val_1;
 					end
-					else if (rs_table[i].rs2 == line_1_o.rd) begin
+					if (rs_table[i].rs2 == line_1_o.rd) begin
 						rs_table[i].source_2 = val_1;
 					end
 					else begin
@@ -183,7 +186,7 @@ import my_package::*;
 					if (rs_table[i].rs1 == line_2_o.rd) begin
 						rs_table[i].source_1 = val_2;
 					end
-					else if (rs_table[i].rs2 == line_2_o.rd) begin
+					if (rs_table[i].rs2 == line_2_o.rd) begin
 						rs_table[i].source_2 = val_2;
 					end
 					else begin
@@ -192,18 +195,16 @@ import my_package::*;
 				
 			end
 			if (~func_units_o[2]) begin
-				if(line_3_o.opcode != 7'b0100011) begin
-					temp_reg_ready = temp_reg_ready | 1 << line_3_o.rd;
-					// now iterate through the reservation table looking for rs1 or rs2 that matches line_3_o.rd
-					for (i = 0; i < 32; i=i+1) begin
-						if (rs_table[i].rs1 == line_3_o.rd) begin
-							rs_table[i].source_1 = val_3;
-						end
-						else if (rs_table[i].rs2 == line_3_o.rd) begin
-							rs_table[i].source_2 = val_3;
-						end
-						else begin
-						end
+				temp_reg_ready = temp_reg_ready | 1 << line_3_o.rd;
+				// now iterate through the reservation table looking for rs1 or rs2 that matches line_3_o.rd
+				for (i = 0; i < 32; i=i+1) begin
+					if (rs_table[i].rs1 == line_3_o.rd) begin
+						rs_table[i].source_1 = val_3;
+					end
+					if (rs_table[i].rs2 == line_3_o.rd) begin
+						rs_table[i].source_2 = val_3;
+					end
+					else begin
 					end
 				end
 			end
@@ -234,7 +235,7 @@ import my_package::*;
 						end
 					end
 					// I TYPE: ADDI, ANDI // I TYPE: LW
-					else if (rs_table[i].opcode == 7'b0010011 && rs_table[i].opcode == 7'b0000011) begin
+					else if (rs_table[i].opcode == 7'b0010011 || rs_table[i].opcode == 7'b0000011) begin
 						if (temp_reg_ready[rs_table[i].rs1] && func_units[rs_table[i].func_unit]) begin
 							// ready to issue
 							if (rs_table[i].func_unit == 0) begin

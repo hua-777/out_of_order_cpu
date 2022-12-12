@@ -110,11 +110,12 @@ module rename (
 		new_opcode_2 = opcode_2;
 		new_alu_op_2 = alu_op_2;
 		
-		for (j = 0; j < 64; j = j+1) begin
+		for (j = 1; j < 64; j = j+1) begin
 			if (freepool[j])
 				break;
 		end
-
+		if (rd_1 == 0)
+			j = 0;
 		//case ADD, SUB, XOR, SRA
 		if (opcode_1 == 7'b0110011) begin
 			new_rs1_1 = rat[rs1_1];
@@ -145,7 +146,7 @@ module rename (
 		// case SW
 		else if (opcode_1 == 7'b0100011) begin
 			new_rs1_1 = rat[rs1_1];
-			new_rs2_1 = rat [rs2_1];
+			new_rs2_1 = rat[rs2_1];
 			new_rd_1 = 0;
 			old_rd_1 = 0;
 		end
@@ -156,11 +157,12 @@ module rename (
 			old_rd_1 = 0;
 		end
 		
-		for (j = 0; j < 64; j = j+1) begin
+		for (j = 1; j < 64; j = j+1) begin
 			if (freepool[j])
 				break;
 		end
-
+		if (rd_2 == 0)
+			j = 0;
 		//case ADD, SUB, XOR, SRA
 		if (opcode_2 == 7'b0110011) begin
 			new_rs1_2 = rat[rs1_2];

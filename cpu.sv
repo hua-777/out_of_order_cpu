@@ -6,6 +6,7 @@ import my_package::*;
 
 	(clk,
 	register_file,
+	arch_register_file,
 	memory
 	);
 				
@@ -274,8 +275,15 @@ import my_package::*;
 			.memory(memory)
 	);
 	
+	output reg [31:0] arch_register_file [0:31];
+	
+	integer i; 
+
 	initial begin
-		#400;
+		for (i=0; i<32; i=i+1) begin
+			arch_register_file[i] = 0;
+		end
+		#1200;
 		$stop;
 	end
 	
@@ -284,7 +292,12 @@ import my_package::*;
 		if (clk == 1) begin
 			clk_counter = clk_counter + 1;
 		end
-		#20; 
+		for (i=0; i<32; i=i+1) begin
+			arch_register_file[i] = register_file[rat[i]];
+		
+			//reg [5:0] rat [0:31];
+		end
+		#10; 
 		pc = pc + 4;
 	end
   

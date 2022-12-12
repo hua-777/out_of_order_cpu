@@ -13,20 +13,20 @@ module fetch(clk,
 
 	initial begin
 		//$readmemh("C:/users/madha/Desktop/ooo_cpu-main/ooo_cpu-main/instructions.txt", data);
-		$readmemh("C:/Users/derek/Documents/ooo_cpu/instructions.txt", data);
+		$readmemh("C:/Users/derek/Documents/ooo_cpu/evaluation-hex.txt", data);
 	end
 	
 	
 	always @ (posedge clk) begin
-		inst1[7:0] <= data[pc];
-		inst1[15:8] <= data[pc + 1];
-		inst1[23:16] <= data[pc + 2];
-		inst1[31:24] <= data[pc + 3];
+		inst1[31:24] <= data[pc];
+		inst1[23:16] <= data[pc + 1];
+		inst1[15:8] <= data[pc + 2];
+		inst1[7:0] <= data[pc + 3];
 		
-		inst2[7:0] <= data[pc + 4];
-		inst2[15:8] <= data[pc + 5];
-		inst2[23:16] <= data[pc + 6];
-		inst2[31:24] <= data[pc + 7];
+		inst2[31:24] <= data[pc + 4];
+		inst2[23:16] <= data[pc + 5];
+		inst2[15:8] <= data[pc + 6];
+		inst2[7:0] <= data[pc + 7];
 		
 	end
 
