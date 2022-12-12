@@ -147,7 +147,7 @@ import my_package::*;
 			end
 			// S TYPE: SW
 			else if (line_3.opcode == 7'b0100011) begin
-				val_3 = line_3.source_2 + line_3.imm;
+				val_3 = line_3.source_1 + line_3.imm;
 			end
 			// invalid opcode
 			else begin

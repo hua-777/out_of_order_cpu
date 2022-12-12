@@ -41,7 +41,7 @@ module writeback(
 			reg_ready_o = 0;
 			if(num_retired == 1) begin
 				if (rob_o_1.rd_opcode == 7'b0100011) begin
-					memory[rob_o_1.rd_value] = rob_o_1.rs1_value;
+					memory[rob_o_1.rd_value] = rob_o_1.rs2_value;
 				end
 				else begin
 					register_file[rob_o_1.curr_d_reg] = rob_o_1.rd_value;
@@ -51,17 +51,16 @@ module writeback(
 			end
 			else if (num_retired == 2) begin
 				if (rob_o_1.rd_opcode == 7'b0100011) begin
-					memory[rob_o_1.rd_value] = rob_o_1.rs1_value;
+					memory[rob_o_1.rd_value] = rob_o_1.rs2_value;
 				end
 				else begin
 					register_file[rob_o_1.curr_d_reg] = rob_o_1.rd_value;
 					free_regs = (1 << rob_o_1.old_d_reg) | free_regs;
 					reg_ready_o = (1 << rob_o_1.curr_d_reg) | reg_ready_o;
-
 				end
 				
 				if (rob_o_2.rd_opcode == 7'b0100011) begin
-					memory[rob_o_2.rd_value] = rob_o_2.rs1_value;
+					memory[rob_o_2.rd_value] = rob_o_2.rs2_value;
 				end
 				else begin
 					register_file[rob_o_2.curr_d_reg] = rob_o_2.rd_value;

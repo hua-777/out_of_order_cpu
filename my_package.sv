@@ -25,7 +25,7 @@ package my_package;
 		reg [5:0] curr_d_reg;
 		reg [6:0] rd_opcode;
 		reg [31:0] rd_value;
-		reg [31:0] rs1_value;
+		reg [31:0] rs2_value;
 	} rob_entry;
 	
 	typedef rob_entry generic_buffer [32];

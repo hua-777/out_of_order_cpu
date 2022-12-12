@@ -109,19 +109,19 @@ import my_package::*;
 				rob[line1_i.rob_index].is_complete = 1; 
 				rob[line1_i.rob_index].rd_opcode = line1_i.opcode;
 				rob[line1_i.rob_index].rd_value = line1_val_i;
-				rob[line1_i.rob_index].rs1_value = line1_i.source_1;
+				rob[line1_i.rob_index].rs2_value = line1_i.source_2;
 			end
 			if (!func_units_flag[1]) begin
 				rob[line2_i.rob_index].is_complete = 1;
 				rob[line2_i.rob_index].rd_opcode = line2_i.opcode;
 				rob[line2_i.rob_index].rd_value = line2_val_i;
-				rob[line2_i.rob_index].rs1_value = line2_i.source_1;
+				rob[line2_i.rob_index].rs2_value = line2_i.source_2;
 			end
 			if (!func_units_flag[2]) begin
 				rob[line3_i.rob_index].is_complete = 1;
 				rob[line3_i.rob_index].rd_opcode = line3_i.opcode;
 				rob[line3_i.rob_index].rd_value = line3_val_i;
-				rob[line3_i.rob_index].rs1_value = line3_i.source_1;
+				rob[line3_i.rob_index].rs2_value = line3_i.source_2;
 			end
 			
 		end
