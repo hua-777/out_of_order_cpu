@@ -9,7 +9,12 @@ module writeback(
 			reg_ready_o,
 			free_regs,
 			register_file,
-			memory
+			memory,
+			
+			ready_reg_1,
+			ready_reg_2,
+			num_retired_o
+			
 			);
 			
 		input clk;
@@ -22,6 +27,10 @@ module writeback(
 
 		output reg [31:0] register_file [0:63];
 		output reg [31:0] memory [0:63];
+		
+		output reg [31:0] ready_reg_1;
+		output reg [31:0] ready_reg_2;
+		output reg [1:0] num_retired_o;
 		
 			
 		initial begin	
@@ -37,6 +46,7 @@ module writeback(
 		end
 		
 		always @ (posedge clk) begin
+			num_retired_o = num_retired;
 			free_regs = 0;
 			reg_ready_o = 0;
 			if(num_retired == 1) begin
@@ -44,6 +54,7 @@ module writeback(
 					memory[rob_o_1.rd_value] = rob_o_1.rs2_value;
 				end
 				else begin
+					ready_reg_1 = rob_o_1.curr_d_reg;
 					register_file[rob_o_1.curr_d_reg] = rob_o_1.rd_value;
 					free_regs = (1 << rob_o_1.old_d_reg) | free_regs;
 					reg_ready_o = (1 << rob_o_1.curr_d_reg) | reg_ready_o;
@@ -54,6 +65,7 @@ module writeback(
 					memory[rob_o_1.rd_value] = rob_o_1.rs2_value;
 				end
 				else begin
+					ready_reg_1 = rob_o_1.curr_d_reg;
 					register_file[rob_o_1.curr_d_reg] = rob_o_1.rd_value;
 					free_regs = (1 << rob_o_1.old_d_reg) | free_regs;
 					reg_ready_o = (1 << rob_o_1.curr_d_reg) | reg_ready_o;
@@ -63,6 +75,7 @@ module writeback(
 					memory[rob_o_2.rd_value] = rob_o_2.rs2_value;
 				end
 				else begin
+					ready_reg_2 = rob_o_2.curr_d_reg;
 					register_file[rob_o_2.curr_d_reg] = rob_o_2.rd_value;
 					free_regs = (1 << rob_o_2.old_d_reg) | free_regs;
 					reg_ready_o = (1 << rob_o_2.curr_d_reg) | reg_ready_o;

@@ -179,6 +179,10 @@ import my_package::*;
 	reg [2:0] func_units_o;
 	reg [63:0] reg_ready_o;
 	
+	reg [31:0] ready_reg_1;
+	reg [31:0] ready_reg_2;
+	reg [1:0] num_retired_o;
+	
 	reservation_station rs_module(
 					.clk(clk),		
 					.clk_counter(clk_counter),
@@ -211,7 +215,10 @@ import my_package::*;
 					.line_3_o(line_3_o),	
 					.func_units_o(func_units_o),
 
-					.reg_ready_o(reg_ready_o)
+					.reg_ready_o(reg_ready_o),
+					.ready_reg_1(ready_reg_1),
+					.ready_reg_2(ready_reg_2),
+					.num_retired_o(num_retired_o)
 					);
 	
 	
@@ -272,7 +279,10 @@ import my_package::*;
 			.reg_ready_o(reg_ready_o),
 			.free_regs(free_regs),
 			.register_file(register_file),
-			.memory(memory)
+			.memory(memory),
+			.ready_reg_1(ready_reg_1),
+			.ready_reg_2(ready_reg_2),
+			.num_retired_o(num_retired_o)
 	);
 	
 	output reg [31:0] arch_register_file [0:31];
@@ -283,7 +293,7 @@ import my_package::*;
 		for (i=0; i<32; i=i+1) begin
 			arch_register_file[i] = 0;
 		end
-		#1200;
+		#600;
 		$stop;
 	end
 	

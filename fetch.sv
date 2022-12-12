@@ -9,7 +9,7 @@ module fetch(clk,
 	input reg [7:0] pc;
 	output reg [31:0] inst1 = 0;
 	output reg [31:0] inst2 = 0;
-	reg [7:0] data [0:127];
+	reg [7:0] data [0:255];
 
 	initial begin
 		//$readmemh("C:/users/madha/Desktop/ooo_cpu-main/ooo_cpu-main/instructions.txt", data);

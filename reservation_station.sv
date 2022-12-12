@@ -38,7 +38,11 @@ import my_package::*;
 				line_3_o,	
 				func_units_o,
 	
-				reg_ready_o
+				reg_ready_o,
+				
+				ready_reg_1,
+				ready_reg_2,
+				num_retired_o
 				);
 	
 	input clk;
@@ -75,6 +79,10 @@ import my_package::*;
 	input reg [2:0] func_units_o;
 	
 	input reg [63:0] reg_ready_o;
+	
+	input reg [31:0] ready_reg_1;
+	input reg [31:0] ready_reg_2;
+	input reg [1:0] num_retired_o;
 
 	//output full;
 		
@@ -162,10 +170,12 @@ import my_package::*;
 			size = size + 2;
 			// ------------------------
 			// forwarding logic
+			
+			// FORWARDING FROM ISSUE
 			temp_reg_ready = reg_ready;
 			
 			if (~func_units_o[0]) begin
-				temp_reg_ready = temp_reg_ready | 1 << line_1_o.rd;
+				temp_reg_ready = temp_reg_ready | (1 << line_1_o.rd);
 				// now iterate through the reservation table looking for rs1 or rs2 that matches line_1_o.rd
 				for (i = 0; i < 32; i=i+1) begin
 					if (rs_table[i].rs1 == line_1_o.rd) begin
@@ -174,13 +184,11 @@ import my_package::*;
 					if (rs_table[i].rs2 == line_1_o.rd) begin
 						rs_table[i].source_2 = val_1;
 					end
-					else begin
-					end
 				end
 				
 			end
 			if (~func_units_o[1]) begin
-				temp_reg_ready = temp_reg_ready | 1 << line_2_o.rd;
+				temp_reg_ready = temp_reg_ready | (1 << line_2_o.rd);
 				// now iterate through the reservation table looking for rs1 or rs2 that matches line_2_o.rd
 				for (i = 0; i < 32; i=i+1) begin
 					if (rs_table[i].rs1 == line_2_o.rd) begin
@@ -189,24 +197,57 @@ import my_package::*;
 					if (rs_table[i].rs2 == line_2_o.rd) begin
 						rs_table[i].source_2 = val_2;
 					end
-					else begin
-					end
 				end
 				
 			end
 			if (~func_units_o[2]) begin
-				temp_reg_ready = temp_reg_ready | 1 << line_3_o.rd;
+				temp_reg_ready = temp_reg_ready | (1 << line_3_o.rd);
 				// now iterate through the reservation table looking for rs1 or rs2 that matches line_3_o.rd
-				for (i = 0; i < 32; i=i+1) begin
-					if (rs_table[i].rs1 == line_3_o.rd) begin
-						rs_table[i].source_1 = val_3;
-					end
-					if (rs_table[i].rs2 == line_3_o.rd) begin
-						rs_table[i].source_2 = val_3;
-					end
-					else begin
+				//if (opcode is not sw) since sw doesnt have a rd so no point in forwarding
+				if (line_3_o.opcode != 7'b0100011) begin
+					for (i = 0; i < 32; i=i+1) begin
+						if (rs_table[i].rs1 == line_3_o.rd) begin
+							rs_table[i].source_1 = val_3;
+						end
+						if (rs_table[i].rs2 == line_3_o.rd) begin
+							rs_table[i].source_2 = val_3;
+						end
 					end
 				end
+			end
+
+			// FORWARDING FROM WRITEBACK
+			if (num_retired_o == 1) begin
+				for (i = 0; i < 32; i=i+1) begin
+					if (rs_table[i].rs1 == ready_reg_1) begin
+						rs_table[i].source_1 = register_file[rs_table[i].rs1];
+					end
+					if (rs_table[i].rs2 == ready_reg_1) begin
+						rs_table[i].source_2 = register_file[rs_table[i].rs2];
+					end
+				end
+			end
+			else if (num_retired_o == 2) begin
+				for (i = 0; i < 32; i=i+1) begin
+						if (rs_table[i].rs1 == ready_reg_1) begin
+							rs_table[i].source_1 = register_file[rs_table[i].rs1];
+						end
+						if (rs_table[i].rs2 == ready_reg_1) begin
+							rs_table[i].source_2 = register_file[rs_table[i].rs2];
+						end
+						
+						if (rs_table[i].rs1 == ready_reg_2) begin
+							rs_table[i].source_1 = register_file[rs_table[i].rs1];
+						end
+						if (rs_table[i].rs2 == ready_reg_2) begin
+							rs_table[i].source_2 = register_file[rs_table[i].rs2];;
+						end
+						
+					end
+				end
+				
+			else begin
+			
 			end
 			
 			// ------------------------
@@ -219,7 +260,10 @@ import my_package::*;
 						if (temp_reg_ready[rs_table[i].rs1] && temp_reg_ready[rs_table[i].rs2] && func_units[rs_table[i].func_unit]) begin
 							// ready to issue
 							if (rs_table[i].func_unit == 0) begin
-								line_1 = rs_table[i];
+								line_1 = rs_table[i]; // the problem is that when issuing an insturction its not grabbing a new saved value from the reg file, it uses the old one that was loaded in
+								// this is because forwarding assumes that the new value is always forwarded in, but thats not always the case. Thus for the xor instruction x3 value stays 0 and is 
+								// never upated to 15 as it should be. 
+								// SOLUTION: writeback updates all register values within the reservation station too
 								func_units[0] = 0;
 							end
 							else if (rs_table[i].func_unit == 1) begin
